@@ -171,7 +171,12 @@ function TOOL:LeftClick( trace )
 		trace.mins = vector_origin
 		trace.maxs = vector_origin
 		trace.filter = { owner, owner:GetVehicle() }
-		ent = util.TraceHull(trace).Entity
+
+		local parented_ent = util.TraceHull(trace).Entity
+
+		if parented_ent:IsValid() and self:IsPropOwner(owner, parented_ent) then
+			ent = parented_ent
+		end
 	end
 
 	if ent:IsValid() and ent:IsPlayer() then return end
@@ -275,7 +280,12 @@ function TOOL:RightClick( trace )
 		trace.mins = vector_origin
 		trace.maxs = vector_origin
 		trace.filter = { owner, owner:GetVehicle() }
-		ent = util.TraceHull(trace).Entity
+
+		local parented_ent = util.TraceHull(trace).Entity
+
+		if parented_ent:IsValid() and self:IsPropOwner(owner, parented_ent) then
+			ent = parented_ent
+		end
 	end
 
 	if ent:IsValid() and ent:IsPlayer() then return false end
