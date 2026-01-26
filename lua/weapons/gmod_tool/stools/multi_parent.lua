@@ -152,13 +152,7 @@ function TOOL:ParentCheck( child, parent )
 	return true
 end
 
-local function sendNotification( selected, ply )
-	net.Start( "MultiParent_SendNotification" )
-		net.WriteUInt( selected, MAX_EDICT_BITS )
-	net.Send( ply )
-end
-
-function TOOL:LeftClick( trace )
+function TOOL:GetParentedEnt(trace)
 	local ent = trace.Entity
 
 	-- Hacky way to hit parented entity
@@ -176,6 +170,18 @@ function TOOL:LeftClick( trace )
 			ent = parented_ent
 		end
 	end
+
+	return ent
+end
+
+local function sendNotification( selected, ply )
+	net.Start( "MultiParent_SendNotification" )
+		net.WriteUInt( selected, MAX_EDICT_BITS )
+	net.Send( ply )
+end
+
+function TOOL:LeftClick( trace )
+	local ent = self:GetParentedEnt(trace)
 
 	if ent:IsValid() and ent:IsPlayer() then return end
 	if SERVER and not util.IsValidPhysicsObject( ent, trace.PhysicsBone ) then return false end
@@ -266,23 +272,7 @@ function TOOL:RightClick( trace )
 		return true
 	end
 
-	local ent = trace.Entity
-
-	-- Hacky way to hit parented entity
-	if not ent:IsValid() then
-		local owner = self:GetOwner()
-		local trace = util.GetPlayerTrace( owner )
-
-		-- Identical to the toolgun code
-		trace.mask = bit.bor(CONTENTS_SOLID, CONTENTS_MOVEABLE, CONTENTS_MONSTER, CONTENTS_WINDOW, CONTENTS_DEBRIS, CONTENTS_GRATE, CONTENTS_AUX)
-		trace.filter = { owner, owner:GetVehicle() }
-
-		local parented_ent = util.TraceHull(trace).Entity
-
-		if parented_ent:IsValid() and self:IsPropOwner(owner, parented_ent) then
-			ent = parented_ent
-		end
-	end
+	local ent = self:GetParentedEnt(trace)
 
 	if ent:IsValid() and ent:IsPlayer() then return false end
 	if SERVER and not util.IsValidPhysicsObject( ent, trace.PhysicsBone ) then return false end
