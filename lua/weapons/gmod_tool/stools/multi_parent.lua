@@ -168,8 +168,6 @@ function TOOL:LeftClick( trace )
 
 		-- Identical to the toolgun code
 		trace.mask = bit.bor(CONTENTS_SOLID, CONTENTS_MOVEABLE, CONTENTS_MONSTER, CONTENTS_WINDOW, CONTENTS_DEBRIS, CONTENTS_GRATE, CONTENTS_AUX)
-		trace.mins = vector_origin
-		trace.maxs = vector_origin
 		trace.filter = { owner, owner:GetVehicle() }
 
 		local parented_ent = util.TraceHull(trace).Entity
@@ -277,8 +275,6 @@ function TOOL:RightClick( trace )
 
 		-- Identical to the toolgun code
 		trace.mask = bit.bor(CONTENTS_SOLID, CONTENTS_MOVEABLE, CONTENTS_MONSTER, CONTENTS_WINDOW, CONTENTS_DEBRIS, CONTENTS_GRATE, CONTENTS_AUX)
-		trace.mins = vector_origin
-		trace.maxs = vector_origin
 		trace.filter = { owner, owner:GetVehicle() }
 
 		local parented_ent = util.TraceHull(trace).Entity
