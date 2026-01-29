@@ -411,16 +411,34 @@ function TOOL:Reload()
 	return true
 end
 
+local isSingleplayer = game.SinglePlayer()
+
+if isSingleplayer and SERVER then
+	local function onDestroyTool()
+		net.Start( "MultiParent_CleanupClientVisuals" )
+		net.Broadcast()
+	end
+
+	TOOL.Holster = onDestroyTool
+	TOOL.OnRemove = onDestroyTool
+end
+
 if SERVER then return end
 
 local parentFrameColor = ColorAlpha( parentColor, parentColor.a + 50 )
 local unparentFrameColor = ColorAlpha( unparentColor, unparentColor.a + 50 )
+local parentHaloColor = Color( 250, 118, 255, 255 )
+local childHaloColor = Color( 0, 255, 0, 255 )
+local haloStrength = 4
+local haloPasses = 2
 local shouldRenderAreaSelect = false
+local shouldRenderParentHalos = false
 local curStage = 0
 local curRadius = 64
 
 function TOOL:Think()
 	local ply = self:GetOwner()
+	shouldRenderParentHalos = true
 	shouldRenderAreaSelect = ply:KeyDown( IN_USE )
 	if not shouldRenderAreaSelect then return end
 
@@ -441,6 +459,43 @@ hook.Add( "PostDrawTranslucentRenderables", "MultiParent_RenderAreaSelect", func
 	render.DrawSphere( pos, curRadius, sphereQuality, sphereQuality, sphereColor )
 	render.DrawWireframeSphere( pos, curRadius, sphereQuality, sphereQuality, frameColor, true )
 end )
+
+hook.Add( "PreDrawHalos", "MultiParent_RenderParents", function()
+	if not shouldRenderParentHalos then return end
+
+	local ent = LocalPlayer():GetEyeTrace().Entity
+	if not IsValid( ent ) then return end
+
+	local parent = ent:GetParent()
+
+	if IsValid( parent ) then
+		halo.Add( { parent }, parentHaloColor, haloStrength, haloStrength, haloPasses, true, true )
+	end
+
+	local childHalos = {}
+
+	for _, child in pairs( ent:GetChildren() ) do
+		if not IsValid( child ) or child:GetClass() == "class CLuaEffect" then continue end
+
+		table.insert( childHalos, child )
+	end
+
+	if #childHalos > 0 then
+		halo.Add( childHalos, childHaloColor, haloStrength, haloStrength, haloPasses, true, true )
+	end
+end )
+
+local function onDestroyTool()
+	shouldRenderAreaSelect = false
+	shouldRenderParentHalos = false
+end
+
+TOOL.Holster = onDestroyTool
+TOOL.OnRemove = onDestroyTool
+
+if isSingleplayer then
+	net.Receive( "MultiParent_CleanupClientVisuals", onDestroyTool )
+end
 
 net.Receive( "MultiParent_SendNotification", function()
 	local selected = net.ReadUInt( MAX_EDICT_BITS )

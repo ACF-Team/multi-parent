@@ -5,6 +5,10 @@
 
 util.AddNetworkString( "MultiParent_SendNotification" )
 
+if game.SinglePlayer() then
+	util.AddNetworkString( "MultiParent_CleanupClientVisuals" )
+end
+
 duplicator.OriginalGetAllConstrainedEntitiesAndConstraints = duplicator.OriginalGetAllConstrainedEntitiesAndConstraints or duplicator.GetAllConstrainedEntitiesAndConstraints
 duplicator.OriginalPaste = duplicator.OriginalPaste or duplicator.Paste
 duplicator.OriginalCopyEntTable = duplicator.OriginalCopyEntTable or duplicator.CopyEntTable
