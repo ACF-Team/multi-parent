@@ -23,7 +23,7 @@ function duplicator.GetAllConstrainedEntitiesAndConstraints( ent, entTable, cons
 
 	local parent = ent:GetParent()
 
-	if IsValid( parent ) then
+	if IsValid( parent ) and parent ~= ent then
 		duplicator.GetAllConstrainedEntitiesAndConstraints( parent, entTable, constraintTable )
 	end
 
